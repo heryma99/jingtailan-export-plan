@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>井太蘭 2026下半年出口计划 & 税负控制</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f4ef; color: #2c2c2a; line-height: 1.6; font-size: 13px; }
+.header { background: #3c3489; color: white; padding: 28px 32px; }
+.header h1 { font-size: 18px; font-weight: 500; letter-spacing: 1px; }
+.header .subtitle { font-size: 13px; opacity: 0.7; margin-top: 6px; }
+.container { max-width: 960px; margin: 0 auto; padding: 24px; }
+.section { margin-bottom: 28px; }
+.section-title { font-size: 15px; font-weight: 500; color: #3c3489; margin-bottom: 16px; border-bottom: 1.5px solid #3c3489; padding-bottom: 6px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-card { background: white; border-radius: 8px; padding: 14px 16px; border: 0.5px solid #d3d1c7; }
+.kpi-label { font-size: 11px; color: #888780; margin-bottom: 4px; }
+.kpi-value { font-size: 22px; font-weight: 500; color: #3c3489; }
+.kpi-value.green { color: #0f6e56; }
+.kpi-value.amber { color: #ba7517; }
+.kpi-value.red { color: #a32d2d; }
+.kpi-unit { font-size: 12px; color: #888780; }
+.chart-wrap { background: white; border-radius: 8px; padding: 16px; border: 0.5px solid #d3d1c7; margin-bottom: 16px; }
+.chart-wrap canvas { width: 100%; }
+table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+th { background: #534ab7; color: white; font-size: 12px; font-weight: 500; padding: 10px 12px; text-align: right; }
+th:first-child, th:nth-child(2) { text-align: left; }
+td { padding: 10px 12px; font-size: 13px; border-bottom: 0.5px solid #d3d1c7; text-align: right; }
+td:first-child, td:nth-child(2) { text-align: left; }
+tr:hover td { background: #eeedfe; }
+tr.total-row td { background: #cecbf6; font-weight: 500; border-bottom: none; }
+.flow-box { background: white; border-radius: 12px; padding: 20px; border: 0.5px solid #d3d1c7; margin-bottom: 16px; }
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
+.flow-node { background: #eeedfe; border: 1px solid #534ab7; border-radius: 8px; padding: 14px 18px; text-align: center; min-width: 140px; }
+.flow-node .fn-title { font-size: 13px; font-weight: 500; color: #3c3489; }
+.flow-node .fn-amount { font-size: 16px; font-weight: 500; color: #534ab7; margin-top: 4px; }
+.flow-node .fn-label { font-size: 11px; color: #888780; }
+.flow-arrow { font-size: 18px; color: #534ab7; }
+.risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.risk-card { background: white; border-radius: 8px; padding: 14px 16px; border: 0.5px solid #d3d1c7; }
+.risk-card .risk-tag { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; }
+.risk-tag.high { background: #f7c1c1; color: #a32d2d; }
+.risk-tag.medium { background: #fac77533; color: #ba7517; }
+.risk-tag.low { background: #9fe1cb33; color: #0f6e56; }
+.risk-card h4 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.risk-card p { font-size: 12px; color: #888780; }
+.note { background: #eeedfe; border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #3c3489; margin-top: 16px; }
+.note strong { color: #3c3489; }
+.alert-box { border-radius: 8px; padding: 14px 16px; font-size: 13px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.alert-red { background: #fce4ec; border: 1px solid #ef9a9a; color: #a32d2d; }
+.alert-green { background: #e8f5e9; border: 1px solid #a5d6a7; color: #0f6e56; }
+.formula-box { background: #e1f5ee; border: 1px solid #0f6e56; border-radius: 12px; padding: 20px; }
+.formula-box .formula { font-size: 14px; font-weight: 500; color: #0f6e56; margin-bottom: 8px; }
+.formula-box .detail { font-size: 12px; color: #085041; }
+@media (max-width: 640px) {
+.kpi-grid { grid-template-columns: repeat(2, 1fr); }
+.risk-grid { grid-template-columns: 1fr; }
+.flow-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>井太蘭 2026H2 出口计划 & 税负控制</h1>
+<div class="subtitle">2026年7月-12月 | FOB出口 | 三流一致架构 | 数据源: 飞书计划表 | 不含税采购均价110 CNY/件</div>
+</div>
+
+<div class="container">
+
+<!-- 税负率预警 -->
+<div class="alert-box alert-red">
+<span style="font-size:20px">⚠</span>
+<div>
+<strong>税负率3.73% 低于4%红线！</strong>
+当前定价公式(FOB本地费未纳入)下，所得税81.1万÷出口额2,175.9万=3.73%。需将FOB本地费7元/件纳入定价公式修正至(成本+FOB费)÷0.8，税负率可恢复至4.7%+。
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">核心指标概览</div>
+<div class="kpi-grid">
+<div class="kpi-card">
+<div class="kpi-label">FOB出口总额</div>
+<div class="kpi-value">2,175.9<span class="kpi-unit"> 万元</span></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">不含税采购成本</div>
+<div class="kpi-value">1,740.8<span class="kpi-unit"> 万元</span></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">出口退税额</div>
+<div class="kpi-value green">226.3<span class="kpi-unit"> 万元</span></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">毛利(收入-不含税成本)</div>
+<div class="kpi-value amber">435.2<span class="kpi-unit"> 万元</span></div>
+</div>
+</div>
+<div class="kpi-grid">
+<div class="kpi-card">
+<div class="kpi-label">含税采购总额</div>
+<div class="kpi-value">1,967.0<span class="kpi-unit"> 万元</span></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">FOB本地费(7元/件)</div>
+<div class="kpi-value red">110.8<span class="kpi-unit"> 万元</span></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">企业所得税(25%)</div>
+<div class="kpi-value">81.1<span class="kpi-unit"> 万元</span></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">所得税税负率</div>
+<div class="kpi-value red">3.73<span class="kpi-unit">%</span></div>
+</div>
+</div>
+<div class="kpi-grid">
+<div class="kpi-card">
+<div class="kpi-label">营业利润(毛利-FOB费)</div>
+<div class="kpi-value">324.4<span class="kpi-unit"> 万元</span></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">净利润(利润-所得税)</div>
+<div class="kpi-value green">243.3<span class="kpi-unit"> 万元</span></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">净利率</div>
+<div class="kpi-value">11.2<span class="kpi-unit">%</span></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">总件数</div>
+<div class="kpi-value">158,250<span class="kpi-unit"> 件</span></div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">客户月度分解 (基于过去6个月平均量)</div>
+<div class="chart-wrap">
+<canvas id="monthlyChart" role="img" aria-label="月度出口额柱状图AP与SOYAMA对比">月度出口额AP vs SOYAMA</canvas>
+</div>
+<table>
+<thead>
+<tr><th>月份</th><th>业务线</th><th>数量(件)</th><th>不含税成本</th><th>含税成本</th><th>退税额</th><th>出口额</th><th>FOB本地费</th><th>利润</th><th>税负率</th></tr>
+</thead>
+<tbody>
+<tr><td>7-12月(每月)</td><td>AP</td><td>6,375</td><td>70.13</td><td>79.24</td><td>9.12</td><td>87.66</td><td>4.46</td><td>13.07</td><td>3.7%</td></tr>
+<tr><td>7-12月(每月)</td><td>SOYAMA</td><td>20,000</td><td>220.00</td><td>248.60</td><td>28.60</td><td>275.00</td><td>14.00</td><td>41.00</td><td>3.7%</td></tr>
+<tr class="total-row"><td>月度合计</td><td>AP+SOYAMA</td><td>26,375</td><td>290.13</td><td>327.84</td><td>37.72</td><td>362.66</td><td>18.46</td><td>54.07</td><td>3.7%</td></tr>
+<tr class="total-row"><td>半年合计</td><td>—</td><td>158,250</td><td>1,740.75</td><td>1,967.05</td><td>226.30</td><td>2,175.94</td><td>110.78</td><td>324.41</td><td>3.7%</td></tr>
+</tbody>
+</table>
+<div class="note">
+<strong>说明:</strong> 数量取过去6个月平均，每月发货量会有浮动，实际下半年预计更高。AP为DDP条款做出口退税，SOYAMA全部做出口退税。利润=出口额-不含税采购成本-FOB本地费。
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">利润表结构 (半年合计)</div>
+<div class="chart-wrap">
+<canvas id="profitChart" role="img" aria-label="利润构成拆解">利润构成拆解</canvas>
+</div>
+<table>
+<thead>
+<tr><th>利润表项目</th><th>计算</th><th>金额(万元)</th><th>占出口额比</th></tr>
+</thead>
+<tbody>
+<tr><td>营业收入(FOB出口)</td><td>—</td><td>2,175.94</td><td>100%</td></tr>
+<tr><td>减: 营业成本(不含税采购)</td><td>158,250件×110元</td><td>1,740.75</td><td>80.0%</td></tr>
+<tr><td><strong>毛利</strong></td><td>收入-成本</td><td><strong>435.19</strong></td><td><strong>20.0%</strong></td></tr>
+<tr><td>减: FOB本地费及其他费用</td><td>158,250件×7元</td><td>110.78</td><td>5.1%</td></tr>
+<tr><td><strong>营业利润(应税所得)</strong></td><td>毛利-费用</td><td><strong>324.41</strong></td><td><strong>14.9%</strong></td></tr>
+<tr><td>减: 企业所得税</td><td>营业利润×25%</td><td>81.10</td><td>3.7%</td></tr>
+<tr class="total-row"><td><strong>净利润</strong></td><td>营业利润-所得税</td><td><strong>243.31</strong></td><td><strong>11.2%</strong></td></tr>
+</tbody>
+</table>
+<div class="note">
+<strong>关键:</strong> 退税226.3万不进利润表(走资产负债表"其他应收款-出口退税")，但其收益已体现在成本按不含税价记账。税负率=所得税81.1万÷收入2,175.9万=3.73%，<span style="color:#a32d2d;font-weight:500">低于4%红线</span>。
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">三流一致架构 & 资金流转</div>
+<div class="flow-box">
+<div class="flow-row">
+<div class="flow-node">
+<div class="fn-title">利景采购</div>
+<div class="fn-amount">1,967万</div>
+<div class="fn-label">含税采购 · 进项税226万</div>
+</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node">
+<div class="fn-title">璞景仓储</div>
+<div class="fn-amount">物流凭证</div>
+<div class="fn-label">内陆运费 · 仓储进项</div>
+</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node">
+<div class="fn-title">井太蘭出口</div>
+<div class="fn-amount">2,176万</div>
+<div class="fn-label">FOB报关 · 出口收入</div>
+</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node" style="border-color:#0f6e56; background:#e1f5ee;">
+<div class="fn-title" style="color:#0f6e56;">退税回流</div>
+<div class="fn-amount" style="color:#0f6e56;">226万</div>
+<div class="fn-label" style="color:#085041;">13%退税率 · 延迟2-3月</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">退税时间轴 (延迟2月模型)</div>
+<div class="chart-wrap">
+<canvas id="refundChart" role="img" aria-label="退税回流与进项税占用时间轴">退税回流时间轴</canvas>
+</div>
+<table>
+<thead>
+<tr><th>月份</th><th>含税采购支出</th><th>FOB出口收入</th><th>FOB本地费</th><th>退税回流(延迟2月)</th><th>净现金流</th><th>累计进项税占用</th></tr>
+</thead>
+<tbody>
+<tr><td>7月</td><td>-327.8</td><td>+362.7</td><td>-18.5</td><td>0</td><td>+16.4</td><td>37.7</td></tr>
+<tr><td>8月</td><td>-327.8</td><td>+362.7</td><td>-18.5</td><td>0</td><td>+16.4</td><td style="color:#ba7517;font-weight:500;">75.4</td></tr>
+<tr><td>9月</td><td>-327.8</td><td>+362.7</td><td>-18.5</td><td>+37.7</td><td>+54.1</td><td style="color:#a32d2d;font-weight:500;">75.4</td></tr>
+<tr><td>10月</td><td>-327.8</td><td>+362.7</td><td>-18.5</td><td>+37.7</td><td>+54.1</td><td style="color:#a32d2d;font-weight:500;">75.4</td></tr>
+<tr><td>11月</td><td>-327.8</td><td>+362.7</td><td>-18.5</td><td>+37.7</td><td>+54.1</td><td>75.4</td></tr>
+<tr class="total-row"><td>12月</td><td>-327.8</td><td>+362.7</td><td>-18.5</td><td>+37.7</td><td>+54.1</td><td>75.4</td></tr>
+</tbody>
+</table>
+<div class="note">
+<strong>资金峰值:</strong> 8月起累计进项税占用即达75.4万(月均37.7万×2)，持续至12月。准备约100万过桥资金即可覆盖。1-2月仍有37.7万/月退税回流(12月采购的退税)。
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">FOB定价公式 & 税负率修正</div>
+<div class="formula-box" style="margin-bottom:16px">
+<div class="formula">当前公式: 售价 = 不含税采购成本 ÷ (1 - 20%) = 110 ÷ 0.8 = 137.5 CNY/件</div>
+<div class="detail">
+<div>单件利润 = 137.5 - 110 - 7(FOB费) = 20.5元 → 月利润 = 26,375 × 20.5 = 54.07万</div>
+<div>所得税 = 54.07 × 25% = 13.52万 → 税负率 = 13.52 ÷ 362.66 = <strong style="color:#a32d2d">3.73% ❌</strong></div>
+</div>
+</div>
+<div class="formula-box" style="background:#f0f5ff; border-color:#2c5aa0">
+<div class="formula" style="color:#2c5aa0">修正公式: 售价 = (不含税采购成本 + FOB本地费) ÷ (1 - 20%) = (110 + 7) ÷ 0.8 = 146.25 CNY/件</div>
+<div class="detail" style="color:#1a2744">
+<div>单件利润 = 146.25 - 110 - 7 = 29.25元 → 月利润 = 26,375 × 29.25 = 77.15万</div>
+<div>所得税 = 77.15 × 25% = 19.29万 → 税负率 = 19.29 ÷ (26,375×146.25/10000) = <strong style="color:#0f6e56">4.73% ✓</strong></div>
+</div>
+</div>
+<table style="margin-top:16px">
+<thead>
+<tr><th>对比项</th><th>当前(FOB费未纳入)</th><th>修正(FOB费纳入定价)</th></tr>
+</thead>
+<tbody>
+<tr><td>售价/件</td><td>137.50 CNY</td><td>146.25 CNY</td></tr>
+<tr><td>半年出口额</td><td>2,175.9万</td><td>2,313.3万 (+6.3%)</td></tr>
+<tr><td>单件利润</td><td>20.50元</td><td>29.25元</td></tr>
+<tr><td>半年营业利润</td><td>324.4万</td><td>461.8万</td></tr>
+<tr><td>所得税</td><td>81.1万</td><td>115.5万</td></tr>
+<tr><td><strong>税负率</strong></td><td style="color:#a32d2d"><strong>3.73% ❌</strong></td><td style="color:#0f6e56"><strong>4.99% ✓</strong></td></tr>
+<tr><td>净利润</td><td>243.3万</td><td>346.3万</td></tr>
+<tr><td>退税额</td><td>226.3万</td><td>226.3万 (不变)</td></tr>
+</tbody>
+</table>
+<div class="note">
+<strong>核心结论:</strong> FOB本地费7元/件纳入定价后，售价从137.5→146.25元(+6.3%)，利润和税负率同步提升。退税额不变(仍按不含税采购成本×13%计算)。需与辅导机构确认修正公式。
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">税控风险矩阵</div>
+<div class="risk-grid">
+<div class="risk-card">
+<span class="risk-tag high">高风险</span>
+<h4>税负率低于4%红线</h4>
+<p>当前3.73%，低于辅导机构要求的4%。需将FOB本地费纳入定价公式，或增加收入/减少费用。每降低0.1%税负率=少交2.18万所得税。</p>
+</div>
+<div class="risk-card">
+<span class="risk-tag high">高风险</span>
+<h4>三流不一致</h4>
+<p>利景采购品名/数量必须与井太蘭报关单逐行匹配。5%不一致率即损失约11.3万退税(226万×5%)。</p>
+</div>
+<div class="risk-card">
+<span class="risk-tag high">高风险</span>
+<h4>预录入号与正式海关号</h4>
+<p>0101开头的预录入号 ≠ 18位正式海关号。退税申报必须使用正式海关号，错用将无法匹配。</p>
+</div>
+<div class="risk-card">
+<span class="risk-tag medium">中风险</span>
+<h4>供应商不合规</h4>
+<p>除革瓦拉外，其他供应商不一定合规。一个订单中存在不同供应商的货出口，存在退税风险。</p>
+</div>
+<div class="risk-card">
+<span class="risk-tag medium">中风险</span>
+<h4>SOYAMA中东平台直付</h4>
+<p>SOYAMA小部分中东发货是平台直接付款，如改FOB则FOB本地费由井太兰承担，进一步侵蚀利润和税负率。</p>
+</div>
+<div class="risk-card">
+<span class="risk-tag medium">中风险</span>
+<h4>物流商测试磨合</h4>
+<p>全面单证出口尚未测试过的物流商，首票存在磨合风险。需提前测试第一票。</p>
+</div>
+<div class="risk-card">
+<span class="risk-tag low">低风险</span>
+<h4>CPSC合规(2026-07-08)</h4>
+<p>39类产品eFiling截止日7月8日，箱包/服装涉及GCC证书。逾期将影响出口通关。</p>
+</div>
+<div class="risk-card">
+<span class="risk-tag low">低风险</span>
+<h4>退税延迟超3月</h4>
+<p>部分地区退税审核超3个月，资金占用升至~113万。需提前沟通批量处理通道。</p>
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">税控行动清单</div>
+<table>
+<thead>
+<tr><th>#</th><th>行动项</th><th>截止日</th><th>目的</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td><strong>确认FOB本地费纳入定价公式</strong></td><td>尽快</td><td>税负率从3.73%→4.99%，达标4%红线</td></tr>
+<tr><td>2</td><td>建立进项-报关匹配台账</td><td>7月10日</td><td>确保三流一致率≥95%</td></tr>
+<tr><td>3</td><td>完成CPSC eFiling(39类)</td><td>7月8日</td><td>避免通关受阻</td></tr>
+<tr><td>4</td><td>申请退税批量预审通道</td><td>7月15日</td><td>缩短退税周期至2月内</td></tr>
+<tr><td>5</td><td>解决SOYAMA中东平台直付问题</td><td>7月20日</td><td>统一FOB条款，锁定FOB费归属</td></tr>
+<tr><td>6</td><td>确认AP DDP条款下的退税基数</td><td>7月20日</td><td>DDP与FOB本地费结构不同</td></tr>
+<tr><td>7</td><td>规划100万过桥资金</td><td>7月25日</td><td>覆盖8-12月进项税占用75万</td></tr>
+<tr><td>8</td><td>测试新物流商首票</td><td>8月1日</td><td>验证单证出口流程</td></tr>
+<tr><td>9</td><td>内陆运费进项归集机制</td><td>8月1日</td><td>运输增值税纳入退税</td></tr>
+<tr><td>10</td><td>月度退税申报不中断</td><td>每月5日</td><td>保证退税现金流连续</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="section">
+<div class="section-title">飞书表原始数据对照</div>
+<div class="note">
+<strong>数据源:</strong> 飞书文档 ncncod7t3txg.feishu.cn/wiki/QktAwj7nCijQNekxOcIcrS9VnXg<br>
+<strong>AP:</strong> 6,375件/月, 不含税成本701,250, 含税成本792,413, 退税91,163, 出口876,563, FOB费44,625, 利润130,688<br>
+<strong>SOYAMA:</strong> 20,000件/月, 不含税成本2,200,000, 含税成本2,486,000, 退税286,000, 出口2,750,000, FOB费140,000, 利润410,000<br>
+<strong>合计:</strong> 158,250件, 不含税成本17,407,500, 含税成本19,670,475, 退税2,262,975, 出口21,759,375, FOB费1,107,750, 利润3,244,125<br>
+<strong>备注:</strong> SOYAMA全部做出口退税；AP预计DDP条款做出口退税；数量为过去6个月平均，实际下半年预计更高。
+</div>
+</div>
+
+</div>
+
+<script>
+const months = ['7月', '8月', '9月', '10月', '11月', '12月'];
+const apData = [87.66, 87.66, 87.66, 87.66, 87.66, 87.66];
+const soyamaData = [275.00, 275.00, 275.00, 275.00, 275.00, 275.00];
+const totalData = [362.66, 362.66, 362.66, 362.66, 362.66, 362.66];
+const cumulative = [362.66, 725.31, 1087.97, 1450.63, 1813.28, 2175.94];
+
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      { label: 'AP(万元)', data: apData, backgroundColor: '#2c5aa0', borderRadius: 3, barPercentage: 0.6 },
+      { label: 'SOYAMA(万元)', data: soyamaData, backgroundColor: '#e8734a', borderRadius: 3, barPercentage: 0.6 },
+      { label: '累计(万元)', data: cumulative, type: 'line', borderColor: '#0f6e56', backgroundColor: 'transparent', pointBackgroundColor: '#0f6e56', pointRadius: 4, tension: 0.3, yAxisID: 'y1' }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top', labels: { font: { size: 11 }, usePointStyle: true } } },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: '月度出口(万元)', font: { size: 11 } }, grid: { color: '#d3d1c7' }, ticks: { font: { size: 11 } } },
+      y1: { beginAtZero: true, position: 'right', title: { display: true, text: '累计(万元)', font: { size: 11 } }, grid: { drawOnChartArea: false }, ticks: { font: { size: 11 } }, max: 2400 },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('refundChart'), {
+  type: 'bar',
+  data: {
+    labels: ['7月', '8月', '9月', '10月', '11月', '12月', '1月(延)', '2月(延)'],
+    datasets: [
+      { label: '含税采购支出(万元)', data: [327.8, 327.8, 327.8, 327.8, 327.8, 327.8, 0, 0], backgroundColor: '#a32d2d', borderRadius: 3, barPercentage: 0.5 },
+      { label: '退税回流(万元)', data: [0, 0, 37.7, 37.7, 37.7, 37.7, 37.7, 37.7], backgroundColor: '#0f6e56', borderRadius: 3, barPercentage: 0.5 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top', labels: { font: { size: 11 }, usePointStyle: true } } },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: '金额(万元)', font: { size: 11 } }, grid: { color: '#d3d1c7' }, ticks: { font: { size: 11 } } },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('profitChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['营业成本(不含税) 1,740.8万(80%)', '毛利 435.2万(20%)'],
+    datasets: [{
+      data: [1740.75, 435.19],
+      backgroundColor: ['#d3d1c7', '#534ab7'],
+      borderWidth: 1, borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '55%',
+    plugins: { legend: { display: true, position: 'bottom', labels: { font: { size: 12 }, usePointStyle: true, padding: 16 } } }
+  }
+});
+</script>
+
+</body>
+</html>
