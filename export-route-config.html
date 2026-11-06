@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>井太蘭 2026H2 出口路由与税控配置</title>
+<style>
+:root{--bg:#f7f8fa;--card:#fff;--navy:#1a2744;--blue:#2c5aa0;--accent:#e8734a;--green:#27ae60;--red:#c0392b;--gray:#7f8c9a;--border:#e0e3e8;--text:#2c3e50;--light:#ecf0f1}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.header{background:var(--navy);color:#fff;padding:20px 30px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:22px;font-weight:600}
+.header .tag{background:var(--accent);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:var(--card);border-radius:12px;padding:24px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.card-title{font-size:16px;font-weight:600;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title .icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.icon-blue{background:var(--blue)}.icon-accent{background:var(--accent)}.icon-green{background:var(--green)}.icon-navy{background:var(--navy)}
+label{font-size:13px;color:var(--gray);display:block;margin-bottom:6px}
+input[type=number],select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none;transition:border .2s}
+input:focus,select:focus{border-color:var(--blue)}
+.month-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.month-input{position:relative}
+.month-input .month-label{position:absolute;top:4px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--gray);font-weight:500}
+.month-input input{padding-top:20px;text-align:center;font-size:13px}
+.route-option{border:2px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .2s}
+.route-option:hover{border-color:var(--blue)}
+.route-option.selected{border-color:var(--blue);background:#f0f5ff}
+.route-option input[type=radio]{margin-right:8px}
+.route-title{font-weight:600;font-size:14px;margin-bottom:6px}
+.route-desc{font-size:12px;color:var(--gray);line-height:1.5}
+.route-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;margin-right:4px}
+.tag-safe{background:#e8f5e9;color:var(--green)}
+.tag-risk{background:#fce4ec;color:var(--red)}
+.tag-info{background:#e3f2fd;color:var(--blue)}
+.flow-diagram{display:flex;align-items:center;gap:6px;padding:10px 0;font-size:13px;flex-wrap:wrap}
+.flow-node{padding:6px 14px;border-radius:8px;font-weight:500;font-size:12px;white-space:nowrap}
+.flow-arrow{color:var(--gray);font-size:16px}
+.node-cn{background:#e3f2fd;color:var(--blue);border:1px solid var(--blue)}
+.node-hk{background:#fff3e0;color:#e67e22;border:1px solid #e67e22}
+.node-us{background:#f3e5f5;color:#8e44ad;border:1px solid #8e44ad}
+.node-storage{background:#e8f5e9;color:var(--green);border:1px solid var(--green)}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{padding:16px;border-radius:10px;background:var(--light)}
+.kpi-value{font-size:22px;font-weight:700;color:var(--navy)}
+.kpi-label{font-size:11px;color:var(--gray);margin-top:4px}
+.kpi-status{font-size:11px;font-weight:500;margin-top:4px}
+.status-pass{color:var(--green)}.status-fail{color:var(--red)}.status-warn{color:var(--accent)}
+.compare-table{width:100%;border-collapse:collapse;font-size:13px}
+.compare-table th{background:var(--navy);color:#fff;padding:10px 12px;font-weight:500;text-align:left}
+.compare-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.compare-table tr:hover td{background:#f5f7fa}
+.compare-table .best{background:#e8f5e9;font-weight:600}
+.highlight{font-weight:700}
+.val-pass{color:var(--green)}.val-fail{color:var(--red)}.val-warn{color:var(--accent)}
+.param-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.param-bar label{min-width:120px}
+.param-bar input{max-width:120px}
+.param-bar .unit{font-size:12px;color:var(--gray)}
+.section-divider{height:1px;background:var(--border);margin:24px 0}
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.alert-red{background:#fce4ec;border:1px solid #ef9a9a;color:var(--red)}
+.alert-green{background:#e8f5e9;border:1px solid #a5d6a7;color:var(--green)}
+.alert-orange{background:#fff3e0;border:1px solid #ffcc80;color:var(--accent)}
+.customer-section{border:2px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.customer-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.customer-badge{padding:6px 16px;border-radius:8px;font-weight:700;font-size:14px}
+.badge-ap{background:#e3f2fd;color:var(--blue);border:2px solid var(--blue)}
+.badge-soyama{background:#fff3e0;color:#e67e22;border:2px solid #e67e22}
+.customer-total{font-size:14px;font-weight:600;color:var(--navy)}
+.full-width{grid-column:1/-1}
+.formula-card{background:var(--light);padding:16px;border-radius:8px}
+.formula-card.highlight-card{background:#f0f5ff;border:2px solid var(--blue)}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.month-grid{grid-template-columns:repeat(3,1fr)}}
+footer{text-align:center;padding:20px;font-size:11px;color:var(--gray)}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>井太蘭 2026H2 出口路由与税控配置</h1>
+<div class="tag">交互式配置</div>
+</div>
+
+<div class="container">
+
+<!-- 全局参数 -->
+<div class="card" style="margin-bottom:20px">
+<div class="card-title"><div class="icon icon-navy">⚙</div>全局参数</div>
+<div class="param-bar">
+<label>不含税采购均价</label>
+<input type="number" id="avgCost" value="110" step="1" onchange="recalc()">
+<span class="unit">CNY/件 (不含税采购成本)</span>
+</div>
+<div class="param-bar">
+<label>FOB本地费</label>
+<input type="number" id="fobLocal" value="7" step="0.5" onchange="recalc()">
+<span class="unit">CNY/件 (含其他费用)</span>
+</div>
+<div class="param-bar">
+<label>定价利润率</label>
+<input type="number" id="marginRate" value="20" step="1" onchange="recalc()">
+<span class="unit">% (售价=成本÷(1-利润率))</span>
+</div>
+<div class="param-bar">
+<label>增值税/退税率</label>
+<input type="number" id="vatRate" value="13" step="0.5" onchange="recalc()">
+<span class="unit">% (征退一致)</span>
+</div>
+<div class="param-bar">
+<label>企业所得税率</label>
+<input type="number" id="citRate" value="25" step="1" onchange="recalc()">
+<span class="unit">%</span>
+</div>
+<div class="param-bar">
+<label>税负率红线</label>
+<input type="number" id="taxBurdenMin" value="4" step="0.5" onchange="recalc()">
+<span class="unit">%</span>
+</div>
+<div class="param-bar">
+<label>其他费用/半年</label>
+<input type="number" id="otherExpense" value="0" step="5" onchange="recalc()">
+<span class="unit">万元 (仓储/办公/人力等)</span>
+</div>
+<div style="background:var(--light);padding:12px;border-radius:8px;font-size:12px;color:var(--gray);margin-top:8px">
+<span style="color:var(--navy);font-weight:500">定价公式:</span> 售价 = 不含税采购成本 ÷ (1 - 利润率) = <span id="pricePerPiece" style="color:var(--blue);font-weight:600"></span> CNY/件<br>
+<span style="color:var(--navy);font-weight:500">修正公式:</span> 售价 = (不含税采购成本 + FOB本地费) ÷ (1 - 利润率) = <span id="revisedPricePerPiece" style="color:var(--green);font-weight:600"></span> CNY/件
+</div>
+</div>
+
+<!-- 客户配置：AP -->
+<div class="customer-section" id="apSection">
+<div class="customer-header">
+<div class="customer-badge badge-ap">AP</div>
+<div class="customer-total" id="apTotal">半年合计: 0 万</div>
+</div>
+
+<div class="card-title" style="margin-bottom:12px"><div class="icon icon-blue">📅</div>月度出口量（万元，FOB售价）</div>
+<div class="month-grid">
+<div class="month-input"><span class="month-label">7月</span><input type="number" id="ap_m7" value="87.66" step="0.01" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">8月</span><input type="number" id="ap_m8" value="87.66" step="0.01" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">9月</span><input type="number" id="ap_m9" value="87.66" step="0.01" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">10月</span><input type="number" id="ap_m10" value="87.66" step="0.01" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">11月</span><input type="number" id="ap_m11" value="87.66" step="0.01" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">12月</span><input type="number" id="ap_m12" value="87.66" step="0.01" onchange="recalc()"></div>
+</div>
+<div style="font-size:12px;color:var(--gray);margin-top:8px">AP: 6,375件/月, DDP条款做出口退税</div>
+
+<div class="section-divider"></div>
+
+<div class="card-title" style="margin-bottom:12px"><div class="icon icon-blue">🔀</div>出口路由方案</div>
+
+<div class="route-option selected" onclick="selectRoute('ap','A')">
+<input type="radio" name="ap_route" value="A" checked>
+<div class="route-title">方案A: 井太蘭 → 利景(HK) → AP <span class="route-tag tag-safe">三流一致 ✓</span></div>
+<div class="route-desc">报关单收发货人=利景，资金流经利景转付井太蘭，采购发票链路完整</div>
+<div class="flow-diagram">
+<span class="flow-node node-cn">国内供应商</span><span class="flow-arrow">→</span>
+<span class="flow-node node-storage">璞景仓储</span><span class="flow-arrow">→</span>
+<span class="flow-node node-cn">井太蘭出口</span><span class="flow-arrow">→</span>
+<span class="flow-node node-hk">利景(HK)</span><span class="flow-arrow">→</span>
+<span class="flow-node node-hk">AP</span>
+</div>
+<div style="font-size:12px;color:var(--green);margin-top:8px">✓ 资金流/物流/单证流均含利景，三流一致率≥95%</div>
+</div>
+
+<div class="route-option" onclick="selectRoute('ap','B')">
+<input type="radio" name="ap_route" value="B">
+<div class="route-title">方案B: 井太蘭 → AP 直接出口 <span class="route-tag tag-risk">三流需调整</span></div>
+<div class="route-desc">报关单收发货人=AP，资金流AP→井太蘭，采购发票改为国内供应商→井太蘭直接</div>
+<div class="flow-diagram">
+<span class="flow-node node-cn">国内供应商</span><span class="flow-arrow">→</span>
+<span class="flow-node node-storage">璞景仓储</span><span class="flow-arrow">→</span>
+<span class="flow-node node-cn">井太蘭出口</span><span class="flow-arrow">→</span>
+<span class="flow-node node-hk">AP</span>
+</div>
+<div style="font-size:12px;color:var(--accent);margin-top:8px">⚠ 利景不在报关链路中，采购发票须改为国内供应商→井太蘭直开</div>
+</div>
+
+<div class="route-option" onclick="selectRoute('ap','C')">
+<input type="radio" name="ap_route" value="C">
+<div class="route-title">方案C: 混合模式 — 利景(收发货人)，AP直付 <span class="route-tag tag-info">需合同配套</span></div>
+<div class="route-desc">报关单收发货人=利景(维持三流)，但资金流AP→井太蘭(不经利景)，需三方贸易合同</div>
+<div class="flow-diagram">
+<span class="flow-node node-cn">国内供应商</span><span class="flow-arrow">→</span>
+<span class="flow-node node-storage">璞景仓储</span><span class="flow-arrow">→</span>
+<span class="flow-node node-cn">井太蘭出口</span><span class="flow-arrow">→</span>
+<span class="flow-node node-hk">利景(报关)</span><span class="flow-arrow">→</span>
+<span class="flow-node node-hk">AP(付款)</span>
+</div>
+<div style="font-size:12px;color:var(--accent);margin-top:8px">⚠ 资金流与物流不完全一致，税务局可能质疑</div>
+</div>
+</div>
+
+<!-- 客户配置：SOYAMA -->
+<div class="customer-section" id="soyamaSection">
+<div class="customer-header">
+<div class="customer-badge badge-soyama">SOYAMA</div>
+<div class="customer-total" id="soyamaTotal">半年合计: 0 万</div>
+</div>
+
+<div class="card-title" style="margin-bottom:12px"><div class="icon icon-blue">📅</div>月度出口量（万元，FOB售价）</div>
+<div class="month-grid">
+<div class="month-input"><span class="month-label">7月</span><input type="number" id="soyama_m7" value="275" step="1" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">8月</span><input type="number" id="soyama_m8" value="275" step="1" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">9月</span><input type="number" id="soyama_m9" value="275" step="1" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">10月</span><input type="number" id="soyama_m10" value="275" step="1" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">11月</span><input type="number" id="soyama_m11" value="275" step="1" onchange="recalc()"></div>
+<div class="month-input"><span class="month-label">12月</span><input type="number" id="soyama_m12" value="275" step="1" onchange="recalc()"></div>
+</div>
+<div style="font-size:12px;color:var(--gray);margin-top:8px">SOYAMA: 20,000件/月, 全部做出口退税</div>
+
+<div class="section-divider"></div>
+
+<div class="card-title" style="margin-bottom:12px"><div class="icon icon-blue">🔀</div>出口路由方案</div>
+
+<div class="route-option selected" onclick="selectRoute('soyama','A')">
+<input type="radio" name="soyama_route" value="A" checked>
+<div class="route-title">方案A: 井太蘭 → 利景(HK) → SOYAMA <span class="route-tag tag-safe">三流一致 ✓</span></div>
+<div class="route-desc">报关单收发货人=利景，资金流经利景转付井太蘭，采购发票链路完整</div>
+<div class="flow-diagram">
+<span class="flow-node node-cn">国内供应商</span><span class="flow-arrow">→</span>
+<span class="flow-node node-storage">璞景仓储</span><span class="flow-arrow">→</span>
+<span class="flow-node node-cn">井太蘭出口</span><span class="flow-arrow">→</span>
+<span class="flow-node node-hk">利景(HK)</span><span class="flow-arrow">→</span>
+<span class="flow-node node-hk">SOYAMA</span>
+</div>
+<div style="font-size:12px;color:var(--green);margin-top:8px">✓ 三流一致率≥95%，退税安全</div>
+</div>
+
+<div class="route-option" onclick="selectRoute('soyama','B')">
+<input type="radio" name="soyama_route" value="B">
+<div class="route-title">方案B: 井太蘭 → SOYAMA 直接出口 <span class="route-tag tag-risk">三流需调整</span></div>
+<div class="route-desc">报关单收发货人=SOYAMA，资金流SOYAMA→井太蘭</div>
+<div class="flow-diagram">
+<span class="flow-node node-cn">国内供应商</span><span class="flow-arrow">→</span>
+<span class="flow-node node-storage">璞景仓储</span><span class="flow-arrow">→</span>
+<span class="flow-node node-cn">井太蘭出口</span><span class="flow-arrow">→</span>
+<span class="flow-node node-hk">SOYAMA</span>
+</div>
+<div style="font-size:12px;color:var(--accent);margin-top:8px">⚠ 利景不在报关链路中，采购发票须改为直开</div>
+</div>
+
+<div class="route-option" onclick="selectRoute('soyama','C')">
+<input type="radio" name="soyama_route" value="C">
+<div class="route-title">方案C: 混合模式 — 利景(收发货人)，SOYAMA直付 <span class="route-tag tag-info">需合同配套</span></div>
+<div class="route-desc">报关单收发货人=利景，资金流SOYAMA→井太蘭，需三方贸易合同</div>
+<div style="font-size:12px;color:var(--accent);margin-top:8px">⚠ 资金流与物流不完全一致，税务局可能质疑</div>
+</div>
+</div>
+
+<!-- KPI 概览 -->
+<div class="card" style="margin-bottom:20px">
+<div class="card-title"><div class="icon icon-green">📊</div>实时财务概览（根据当前配置自动计算）</div>
+<div class="kpi-row" id="kpiRow">
+<div class="kpi"><div class="kpi-value" id="kpiExport">0</div><div class="kpi-label">出口总额</div></div>
+<div class="kpi"><div class="kpi-value" id="kpiProfit">0</div><div class="kpi-label">营业利润</div><div class="kpi-status" id="kpiProfitStatus"></div></div>
+<div class="kpi"><div class="kpi-value" id="kpiRefund">0</div><div class="kpi-label">退税额</div><div class="kpi-status" id="kpiRefundStatus"></div></div>
+<div class="kpi"><div class="kpi-value" id="kpiTaxBurden">0</div><div class="kpi-label">税负率</div><div class="kpi-status" id="kpiTaxBurdenStatus"></div></div>
+</div>
+<div class="kpi-row">
+<div class="kpi"><div class="kpi-value" id="kpiGross">0</div><div class="kpi-label">毛利</div></div>
+<div class="kpi"><div class="kpi-value" id="kpiNet">0</div><div class="kpi-label">净利润</div></div>
+<div class="kpi"><div class="kpi-value" id="kpiPieces">0</div><div class="kpi-label">总件数</div></div>
+<div class="kpi"><div class="kpi-value" id="kpiThreeFlow">0</div><div class="kpi-label">三流一致率</div><div class="kpi-status" id="kpiThreeFlowStatus"></div></div>
+</div>
+
+<div id="alertsArea"></div>
+
+<div class="section-divider"></div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div>
+<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px">利润表结构</div>
+<div id="profitBreakdown" style="font-size:13px;line-height:1.8"></div>
+</div>
+<div>
+<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px">定价公式对比</div>
+<div id="formulaCompare" style="font-size:13px;line-height:1.8"></div>
+</div>
+</div>
+</div>
+
+<!-- 路由方案综合对比 -->
+<div class="card" style="margin-bottom:20px">
+<div class="card-title"><div class="icon icon-accent">⚖</div>路由方案综合对比</div>
+<table class="compare-table">
+<thead>
+<tr><th>指标</th><th>方案A: 经利景</th><th>方案B: 直接出口</th><th>方案C: 混合模式</th></tr>
+</thead>
+<tbody>
+<tr><td>报关收发货人</td><td>利景(HK)</td><td>AP/SOYAMA</td><td>利景(HK)</td></tr>
+<tr><td>资金流路径</td><td>客户→利景→井太蘭</td><td>客户→井太蘭</td><td>客户→井太蘭(不经利景)</td></tr>
+<tr><td>采购发票链路</td><td>国内供应商→井太蘭</td><td>国内供应商→井太蘭(直开)</td><td>国内供应商→井太蘭</td></tr>
+<tr><td>三流一致率</td><td class="best">≥95% ✓</td><td class="val-warn">需调整采购发票</td><td>≈80% ⚠</td></tr>
+<tr><td>退税安全度</td><td class="best">高 ✓</td><td class="val-warn">中(需发票配套)</td><td class="val-warn">低(资金流不一致)</td></tr>
+<tr><td>退税额</td><td id="cmp_refund_a">0</td><td id="cmp_refund_b">0</td><td id="cmp_refund_c">0</td></tr>
+<tr><td>利润(含退税)</td><td id="cmp_profit_a">0</td><td id="cmp_profit_b">0</td><td id="cmp_profit_c">0</td></tr>
+<tr><td>HK环节</td><td>2次(利景+客户)</td><td>1次(客户)</td><td>1次(客户+利景报关)</td></tr>
+<tr><td style="font-weight:600;color:var(--navy)">推荐度</td><td style="font-weight:700;color:var(--green)">⭐⭐⭐ 最安全</td><td style="font-weight:700;color:var(--accent)">⭐⭐ 需配套</td><td style="font-weight:700;color:var(--red)">⭐ 有风险</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- 月度明细表 -->
+<div class="card" style="margin-bottom:20px">
+<div class="card-title"><div class="icon icon-navy">📋</div>月度明细表（基于飞书数据）</div>
+<div id="monthlyTable"></div>
+</div>
+
+</div>
+
+<footer>井太蘭出口路由与税控配置工具 · 数据源: 飞书计划表 · 不含税采购均价110 CNY/件 · FOB本地费7 CNY/件</footer>
+
+<script>
+function getVal(id){return parseFloat(document.getElementById(id).value)||0}
+function setVal(id,v){document.getElementById(id).textContent=v}
+function formatWan(v){
+  if(v>=10000)return (v/10000).toFixed(1)+'亿';
+  if(v>=1)return v.toFixed(2);
+  if(v>=0.01)return v.toFixed(3);
+  return v.toFixed(4);
+}
+
+function getMonthTotals(prefix){
+  let months=[],total=0;
+  for(let m=7;m<=12;m++){let v=getVal(prefix+'_m'+m);months.push(v);total+=v}
+  return {months,total};
+}
+
+function getRoute(customer){
+  let radios=document.getElementsByName(customer+'_route');
+  for(let r of radios)if(r.checked)return r.value;
+  return 'A';
+}
+
+function selectRoute(customer,route){
+  let radios=document.getElementsByName(customer+'_route');
+  for(let r of radios){
+    r.checked=(r.value===route);
+    r.closest('.route-option').classList.toggle('selected',r.value===route);
+  }
+  recalc();
+}
+
+function recalc(){
+  let avgCost=getVal('avgCost');        // 不含税采购成本/件 = 110
+  let fobLocal=getVal('fobLocal');       // FOB本地费/件 = 7
+  let marginRate=getVal('marginRate')/100; // 0.20
+  let vatRate=getVal('vatRate')/100;     // 0.13
+  let citRate=getVal('citRate')/100;     // 0.25
+  let taxBurdenMin=getVal('taxBurdenMin')/100; // 0.04
+  let otherExpense=getVal('otherExpense'); // 其他费用(万)
+
+  // 出口价/件 = 成本 / (1 - 利润率)
+  let exportPricePerPiece = avgCost / (1 - marginRate); // 110/0.8 = 137.5
+  // 修正出口价/件 = (成本 + FOB费) / (1 - 利润率)
+  let revisedPricePerPiece = (avgCost + fobLocal) / (1 - marginRate); // 117/0.8 = 146.25
+
+  setVal('pricePerPiece', exportPricePerPiece.toFixed(2));
+  setVal('revisedPricePerPiece', revisedPricePerPiece.toFixed(2));
+
+  let ap=getMonthTotals('ap');
+  let soyama=getMonthTotals('soyama');
+  let combinedTotal=ap.total+soyama.total; // 出口总额(万元)
+
+  setVal('apTotal','半年合计: '+ap.total.toFixed(2)+' 万');
+  setVal('soyamaTotal','半年合计: '+soyama.total.toFixed(2)+' 万');
+
+  // 总件数 = 出口总额(元) / 出口价(元/件)
+  let totalPieces = Math.round(combinedTotal * 10000 / exportPricePerPiece);
+  // 不含税采购成本(万元) = 总件数 × 成本/件 / 10000
+  let costNoVat = totalPieces * avgCost / 10000;
+  // 含税采购成本(万元)
+  let costWithVat = costNoVat * (1 + vatRate);
+  // 进项税/退税额(万元)
+  let inputVat = costNoVat * vatRate;
+  let vatRefund = inputVat; // 征退一致
+  // FOB本地费(万元)
+  let totalFobLocal = totalPieces * fobLocal / 10000;
+
+  // 利润计算
+  let grossProfit = combinedTotal - costNoVat; // 毛利 = 收入 - 不含税成本
+  let operatingProfit = grossProfit - totalFobLocal - otherExpense; // 营业利润
+  let cit = operatingProfit * citRate; // 所得税
+  let netProfit = operatingProfit - cit; // 净利
+  let taxBurden = cit / combinedTotal; // 税负率
+
+  // 修正公式下的计算
+  let revisedTotal = totalPieces * revisedPricePerPiece / 10000; // 修正后出口额
+  let revisedGross = revisedTotal - costNoVat;
+  let revisedOpProfit = revisedGross - totalFobLocal - otherExpense;
+  let revisedCit = revisedOpProfit * citRate;
+  let revisedTaxBurden = revisedCit / revisedTotal;
+
+  // 三流一致率
+  let apRoute=getRoute('ap');
+  let soyamaRoute=getRoute('soyama');
+  let routeFlowRates={'A':0.95,'B':0.70,'C':0.80};
+  let threeFlowRate=0;
+  if(combinedTotal>0){
+    threeFlowRate=(ap.total/combinedTotal)*routeFlowRates[apRoute]+(soyama.total/combinedTotal)*routeFlowRates[soyamaRoute];
+  }
+
+  // KPI updates
+  setVal('kpiExport', formatWan(combinedTotal));
+  setVal('kpiGross', formatWan(grossProfit));
+  setVal('kpiProfit', formatWan(operatingProfit));
+  setVal('kpiNet', formatWan(netProfit));
+  setVal('kpiRefund', formatWan(vatRefund));
+  setVal('kpiTaxBurden', (taxBurden*100).toFixed(2)+'%');
+  setVal('kpiPieces', totalPieces.toLocaleString());
+  setVal('kpiThreeFlow', (threeFlowRate*100).toFixed(0)+'%');
+
+  // Status
+  document.getElementById('kpiTaxBurdenStatus').innerHTML = taxBurden>=taxBurdenMin
+    ? '<span class="status-pass">达标 ✓</span>'
+    : '<span class="status-fail">未达标 ❌ (需≥'+(taxBurdenMin*100)+'%)</span>';
+
+  document.getElementById('kpiThreeFlowStatus').innerHTML = threeFlowRate>=0.95
+    ? '<span class="status-pass">安全 ✓</span>'
+    : (threeFlowRate>=0.80 ? '<span class="status-warn">有风险 ⚠</span>' : '<span class="status-fail">高风险 ❌</span>');
+
+  document.getElementById('kpiProfitStatus').innerHTML = operatingProfit>0
+    ? '<span class="status-pass">盈利 ✓</span>' : '<span class="status-fail">亏损 ❌</span>';
+
+  document.getElementById('kpiRefundStatus').innerHTML = threeFlowRate>=0.95
+    ? '<span class="status-pass">全额退 ✓</span>' : '<span class="status-warn">需审核 ⚠</span>';
+
+  // Alerts
+  let alerts='';
+  if(taxBurden<taxBurdenMin){
+    alerts+='<div class="alert alert-red">❌ 当前税负率'+(taxBurden*100).toFixed(2)+'% < 红线'+(taxBurdenMin*100)+'%。所得税'+formatWan(cit)+'万，需将FOB本地费纳入定价公式 → 修正后税负率'+(revisedTaxBurden*100).toFixed(2)+'%</div>';
+  }else{
+    alerts+='<div class="alert alert-green">✓ 税负率'+(taxBurden*100).toFixed(2)+'% 达标(红线'+(taxBurdenMin*100)+'%)</div>';
+  }
+  if(threeFlowRate<0.95){
+    alerts+='<div class="alert alert-orange">⚠ 三流一致率'+(threeFlowRate*100).toFixed(0)+'%，退税审核风险增加，建议采用方案A(经利景)</div>';
+  }
+  alerts+='<div class="alert alert-'+(taxBurden>=taxBurdenMin?'green':'red')+'">当前公式: 售价'+exportPricePerPiece.toFixed(1)+'元/件 → 税负率'+(taxBurden*100).toFixed(2)+'% | 修正公式: 售价'+revisedPricePerPiece.toFixed(1)+'元/件 → 税负率'+(revisedTaxBurden*100).toFixed(2)+'%</div>';
+  document.getElementById('alertsArea').innerHTML=alerts;
+
+  // Profit breakdown
+  document.getElementById('profitBreakdown').innerHTML=
+    '营业收入: <b>'+formatWan(combinedTotal)+'万</b><br>'+
+    '减: 不含税成本: '+formatWan(costNoVat)+'万<br>'+
+    '= 毛利: <b>'+formatWan(grossProfit)+'万</b> ('+((grossProfit/combinedTotal)*100).toFixed(1)+'%)<br>'+
+    '减: FOB本地费: '+formatWan(totalFobLocal)+'万<br>'+
+    '减: 其他费用: '+formatWan(otherExpense)+'万<br>'+
+    '= 营业利润: <b>'+formatWan(operatingProfit)+'万</b><br>'+
+    '减: 所得税('+citRate*100+'%): '+formatWan(cit)+'万<br>'+
+    '= 净利润: <b>'+formatWan(netProfit)+'万</b><br>'+
+    '退税额(不入利润表): '+formatWan(vatRefund)+'万<br>'+
+    '税负率: <b>'+(taxBurden*100).toFixed(2)+'%</b>';
+
+  // Formula compare
+  document.getElementById('formulaCompare').innerHTML=
+    '<span style="color:var(--red)">当前:</span> '+avgCost+'÷'+(1-marginRate)+' = <b>'+exportPricePerPiece.toFixed(2)+'</b>元/件<br>'+
+    ' 利润/件 = '+exportPricePerPiece.toFixed(2)+'-'+avgCost+'-'+fobLocal+' = <b>'+(exportPricePerPiece-avgCost-fobLocal).toFixed(2)+'</b>元<br>'+
+    ' 税负率 = <b style="color:var(--red)">'+(taxBurden*100).toFixed(2)+'%</b><br>'+
+    '<span style="color:var(--green)">修正:</span> ('+avgCost+'+'+fobLocal+')÷'+(1-marginRate)+' = <b>'+revisedPricePerPiece.toFixed(2)+'</b>元/件<br>'+
+    ' 利润/件 = '+revisedPricePerPiece.toFixed(2)+'-'+avgCost+'-'+fobLocal+' = <b>'+(revisedPricePerPiece-avgCost-fobLocal).toFixed(2)+'</b>元<br>'+
+    ' 税负率 = <b style="color:var(--green)">'+(revisedTaxBurden*100).toFixed(2)+'%</b><br>'+
+    '价差: <b>'+(revisedPricePerPiece-exportPricePerPiece).toFixed(2)+'</b>元/件 ('+(((revisedPricePerPiece/exportPricePerPiece)-1)*100).toFixed(1)+'%)';
+
+  // Compare table
+  let refundA=vatRefund;
+  let refundB=vatRefund*0.85;
+  let refundC=vatRefund*0.80;
+  setVal('cmp_refund_a',formatWan(refundA)+'万');
+  setVal('cmp_refund_b',formatWan(refundB)+'万 ⚠');
+  setVal('cmp_refund_c',formatWan(refundC)+'万 ⚠');
+  let profitA=operatingProfit;
+  let profitB=operatingProfit-(vatRefund-refundB);
+  let profitC=operatingProfit-(vatRefund-refundC);
+  setVal('cmp_profit_a',formatWan(profitA)+'万');
+  setVal('cmp_profit_b',formatWan(profitB)+'万');
+  setVal('cmp_profit_c',formatWan(profitC)+'万');
+
+  // Monthly table
+  let monthNames=['7月','8月','9月','10月','11月','12月'];
+  let html='<table class="compare-table"><thead><tr><th>月份</th><th>AP(万)</th><th>SOYAMA(万)</th><th>合计(万)</th><th>件数</th><th>不含税成本</th><th>含税成本</th><th>退税</th><th>FOB费</th><th>利润</th></tr></thead><tbody>';
+  for(let i=0;i<6;i++){
+    let apM=ap.months[i],soyM=soyama.months[i],totalM=apM+soyM;
+    let piecesM=Math.round(totalM*10000/exportPricePerPiece);
+    let costM=piecesM*avgCost/10000;
+    let costWVM=costM*(1+vatRate);
+    let vatM=costM*vatRate;
+    let fobM=piecesM*fobLocal/10000;
+    let profitM=totalM-costM-fobM;
+    html+='<tr><td>'+monthNames[i]+'</td><td>'+apM.toFixed(2)+'</td><td>'+soyM.toFixed(2)+'</td><td><b>'+totalM.toFixed(2)+'</b></td><td>'+piecesM.toLocaleString()+'</td><td>'+formatWan(costM)+'</td><td>'+formatWan(costWVM)+'</td><td>'+formatWan(vatM)+'</td><td>'+formatWan(fobM)+'</td><td>'+formatWan(profitM)+'</td></tr>';
+  }
+  html+='<tr style="font-weight:700;background:#f5f7fa"><td>合计</td><td>'+ap.total.toFixed(2)+'</td><td>'+soyama.total.toFixed(2)+'</td><td>'+combinedTotal.toFixed(2)+'</td><td>'+totalPieces.toLocaleString()+'</td><td>'+formatWan(costNoVat)+'</td><td>'+formatWan(costWithVat)+'</td><td>'+formatWan(vatRefund)+'</td><td>'+formatWan(totalFobLocal)+'</td><td>'+formatWan(operatingProfit)+'</td></tr>';
+  html+='</tbody></table>';
+  document.getElementById('monthlyTable').innerHTML=html;
+}
+
+recalc();
+</script>
+</body>
+</html>
