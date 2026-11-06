@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>保本出口额测算 · 井太蘭</title>
+<style>
+:root{
+  --bg:#f7f8fa; --card:#ffffff; --ink:#1f2329; --ink2:#5f6672; --ink3:#8a919e;
+  --line:#e4e7ed; --accent:#185fa5; --accent-bg:#e6f1fb;
+  --pos:#0f6e56; --pos-bg:#e1f5ee; --neg:#a32d2d; --neg-bg:#fcebeb;
+  --warn:#854f0b; --warn-bg:#faeeda;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.6;padding:28px 20px 60px}
+.wrap{max-width:1120px;margin:0 auto}
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.sub{color:var(--ink2);font-size:13px;margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+h2{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:3px;height:14px;background:var(--accent);border-radius:2px}
+.hero{background:var(--accent-bg);border:1px solid #b5d4f4;border-radius:12px;padding:22px 26px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px}
+.hero-label{font-size:13px;color:#0c447c}
+.hero-num{font-size:38px;font-weight:600;color:#0c447c;line-height:1.2;font-variant-numeric:tabular-nums}
+.hero-num small{font-size:16px;font-weight:500;margin-left:4px}
+.hero-note{font-size:12px;color:#185fa5;margin-top:4px}
+.hero-side{text-align:right;font-size:12px;color:#0c447c;line-height:1.9}
+.hero-side b{font-size:16px;font-weight:600}
+.grid{display:grid;gap:12px}
+.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.fld label{display:block;font-size:12px;color:var(--ink2);margin-bottom:6px}
+.fld input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;color:var(--ink);background:#fff;font-variant-numeric:tabular-nums}
+.fld input:focus{outline:2px solid #b5d4f4;border-color:var(--accent)}
+.fld .unit{font-size:11px;color:var(--ink3);margin-top:4px}
+.kpi{background:var(--bg);border-radius:8px;padding:13px 14px}
+.kpi .lb{font-size:12px;color:var(--ink2)}
+.kpi .vl{font-size:21px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+.kpi .hint{font-size:11px;color:var(--ink3);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{background:var(--bg);font-weight:500;color:var(--ink2);font-size:12px}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafbfc}
+.hl{background:var(--accent-bg)!important;font-weight:500}
+.pos{color:var(--pos);font-weight:500}
+.neg{color:var(--neg);font-weight:500}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.tag-p{background:var(--pos-bg);color:var(--pos)}
+.tag-n{background:var(--neg-bg);color:var(--neg)}
+.tag-w{background:var(--warn-bg);color:var(--warn)}
+.formula{background:var(--bg);border-left:3px solid var(--accent);padding:12px 16px;border-radius:0 8px 8px 0;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;color:var(--ink);line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.note{font-size:12px;color:var(--ink2);margin-top:12px;line-height:1.8}
+.note b{color:var(--ink)}
+.chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;margin-top:4px}
+.chain .step{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 11px;font-variant-numeric:tabular-nums}
+.chain .op{color:var(--ink3)}
+@media(max-width:860px){.g5,.g4,.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-side{text-align:left}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>保本出口额测算</h1>
+  <div class="sub">井太蘭 · 定价口径：销售价 = 不含税采购成本 ÷ (1 − 毛利率)，FOB 本地费未纳入定价、需单独扣除</div>
+
+  <div class="hero">
+    <div>
+      <div class="hero-label">盈亏平衡所需月出口额</div>
+      <div class="hero-num" id="heroVal">820.90<small>万元 / 月</small></div>
+      <div class="hero-note" id="heroNote">有效贡献毛益率 8.53% · 保本件数 64,179 件/月</div>
+    </div>
+    <div class="hero-side">
+      年化出口额 <b id="heroYear">9,850.8 万</b><br>
+      H2（6个月） <b id="heroH2">4,925.4 万</b><br>
+      目标利润口径见下方梯度表
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>参数配置</h2>
+    <div class="grid g5">
+      <div class="fld"><label>不含税采购单价</label><input id="c" type="number" value="110" step="1"><div class="unit">CNY / 件</div></div>
+      <div class="fld"><label>定价毛利率</label><input id="m" type="number" value="14" step="0.5"><div class="unit">% （售价中的利润占比）</div></div>
+      <div class="fld"><label>FOB 本地费</label><input id="f" type="number" value="7" step="0.5"><div class="unit">CNY / 件 · 额外变动成本</div></div>
+      <div class="fld"><label>月固定成本</label><input id="fc" type="number" value="700000" step="10000"><div class="unit">CNY / 月</div></div>
+      <div class="fld"><label>目标月利润</label><input id="tp" type="number" value="0" step="50000"><div class="unit">CNY / 月 · 0 = 保本</div></div>
+    </div>
+    <div class="grid g5" style="margin-top:14px">
+      <div class="fld"><label>利润上限</label><input id="pl" type="number" value="3000000" step="100000"><div class="unit">CNY · 小型微利企业门槛</div></div>
+      <div class="fld"><label>利润上限口径</label><select id="period" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:13px;background:#fff;color:var(--ink)"><option value="12">年度应纳税所得额</option><option value="6">H2 半年累计</option><option value="1">单月</option></select><div class="unit">对应 12 / 6 / 1 个月</div></div>
+      <div class="fld"><label>企业所得税率</label><select id="rate" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:13px;background:#fff;color:var(--ink)"><option value="0.05">5% 小微优惠</option><option value="0.25">25% 标准税率</option></select><div class="unit">影响所得税与税负率</div></div>
+      <div class="fld"><label>4% 指标方向</label><select id="dir" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:13px;background:#fff;color:var(--ink)"><option value="min">不低于 4%（下限）</option><option value="max">不超过 4%（上限）</option></select><div class="unit">税负率红线方向</div></div>
+      <div class="fld"><label>税负率目标</label><input id="tt" type="number" value="4" step="0.1"><div class="unit">% · 所得税 ÷ 出口额</div></div>
+    </div>
+    <div class="note">另设业务量对照：<input id="q0" type="number" value="26375" step="500" style="width:110px;border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:13px"> 件/月（飞书表 H2 计划的实际月均件数）</div>
+  </div>
+
+  <div class="card">
+    <h2>单件经济与核心指标</h2>
+    <div class="grid g4" id="kpis"></div>
+    <div class="chain" id="chain" style="margin-top:16px"></div>
+  </div>
+
+  <div class="card">
+    <h2>利润表推导</h2>
+    <table>
+      <thead><tr><th>项目</th><th>单件 (CNY)</th><th>保本月度 (CNY)</th><th>说明</th></tr></thead>
+      <tbody id="plBody"></tbody>
+    </table>
+    <div class="formula" id="formulaBox"></div>
+  </div>
+
+  <div class="card">
+    <h2>约束条件与可行出口额区间</h2>
+    <div id="cBanner"></div>
+    <table style="margin-top:14px">
+      <thead><tr><th>约束</th><th>条件</th><th>对应出口额</th><th>性质</th></tr></thead>
+      <tbody id="cRows"></tbody>
+    </table>
+    <div id="rangeBar" style="margin-top:18px"></div>
+    <div style="margin-top:20px">
+      <h2 style="font-size:14px">300 万临界点的税额跳变</h2>
+      <table>
+        <thead><tr><th>年应纳税所得额</th><th>适用税率</th><th>企业所得税</th><th>税后净利</th></tr></thead>
+        <tbody id="cliff"></tbody>
+      </table>
+      <div class="note" id="cliffNote"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>目标利润梯度</h2>
+    <table>
+      <thead><tr><th>目标月利润</th><th>所需出口额</th><th>所需件数</th><th>较保本增量</th><th>企业所得税税负率</th></tr></thead>
+      <tbody id="gradient"></tbody>
+    </table>
+    <div class="note">税负率 = (出口额 × 有效贡献毛益率 − 固定成本) × 25% ÷ 出口额。辅导机构建议 ≥4%，此处仅作联动展示。</div>
+  </div>
+
+  <div class="card">
+    <h2>定价口径对照（固定成本与 FOB 费不变）</h2>
+    <table>
+      <thead><tr><th>定价毛利率</th><th>售价/件</th><th>账面毛利/件</th><th>FOB 费率</th><th>有效贡献毛益率</th><th>保本出口额/月</th><th>相对 14%</th></tr></thead>
+      <tbody id="compare"></tbody>
+    </table>
+    <div class="note" id="compareNote"></div>
+  </div>
+
+  <div class="card">
+    <h2>现有业务量对照</h2>
+    <table>
+      <thead><tr><th>项目</th><th>数值</th><th>说明</th></tr></thead>
+      <tbody id="current"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>换汇成本与汇率</h2>
+    <div class="grid g4">
+      <div class="fld"><label>基准汇率（报价／申报）</label><input id="fx" type="number" value="6.7150" step="0.01"><div class="unit">CNY/USD · 2026-11-03 中间价</div></div>
+      <div class="fld"><label>情景汇率（实际结汇）</label><input id="fx1" type="number" value="6.7150" step="0.01"><div class="unit">CNY/USD · 美元合同锁价时使用</div></div>
+      <div class="fld"><label>参考区间下限</label><input id="hcl" type="number" value="5" step="0.1"><div class="unit">元/美元 · 行业参考，非法定</div></div>
+      <div class="fld"><label>参考区间上限</label><input id="hch" type="number" value="8" step="0.1"><div class="unit">元/美元 · 部分地区执行更严</div></div>
+    </div>
+    <div id="fxBanner" style="margin-top:14px"></div>
+    <div class="grid g4" id="fxKpis" style="margin-top:14px"></div>
+    <table style="margin-top:16px">
+      <thead><tr><th>口径</th><th>分子（人民币/件）</th><th>换汇成本</th><th>vs 基准汇率</th><th>vs 参考区间</th></tr></thead>
+      <tbody id="fxRows"></tbody>
+    </table>
+    <div style="margin-top:18px">
+      <h2 style="font-size:14px">汇率敏感性（美元合同锁价，FOB 美元价不变）</h2>
+      <table>
+        <thead><tr><th>结汇汇率</th><th>人民币收入/件</th><th>有效贡献毛益率</th><th>月度经营利润</th><th>保本出口额</th></tr></thead>
+        <tbody id="fxSens"></tbody>
+      </table>
+      <div class="note" id="fxNote"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>口径说明与约束</h2>
+    <div class="note" id="notes"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = (n,d=0) => (isFinite(n)? n : 0).toLocaleString('zh-CN',{minimumFractionDigits:d,maximumFractionDigits:d});
+const wan = (n,d=2) => (isFinite(n)? n/10000 : 0).toLocaleString('zh-CN',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct = (n,d=2) => (isFinite(n)? n*100 : 0).toFixed(d)+'%';
+
+function read(){
+  return {
+    c:+$('c').value||0, m:(+$('m').value||0)/100, f:+$('f').value||0,
+    fc:+$('fc').value||0, tp:+$('tp').value||0, q0:+$('q0').value||0,
+    pl:+$('pl').value||0, period:+$('period').value||12, rate:+$('rate').value||0.25,
+    dir:$('dir').value, tt:(+$('tt').value||0)/100,
+    fx:+$('fx').value||0, fx1:+$('fx1').value||0, hcl:+$('hcl').value||0, hch:+$('hch').value||0
+  };
+}
+function model(p){
+  const P = p.c/(1-p.m);
+  const gross = P-p.c;
+  const cm = P-p.c-p.f;
+  const cmRate = cm/P;
+  const fobRate = p.f/P;
+  const Qbep = cm>0 ? p.fc/cm : Infinity;
+  const Rbep = cmRate>0 ? p.fc/cmRate : Infinity;
+  const Rtarget = cmRate>0 ? (p.fc+p.tp)/cmRate : Infinity;
+  return {P,gross,cm,cmRate,fobRate,Qbep,Rbep,Rtarget};
+}
+function taxRate(R,p,d){ return R>0 && isFinite(R) ? Math.max(0,(R*d.cmRate-p.fc)*p.rate/R) : 0; }
+
+function render(){
+  const p=read(), d=model(p);
+  const ok = d.cm>0;
+
+  $('heroVal').innerHTML = ok ? wan(d.Rbep)+'<small>万元 / 月</small>' : '无法保本';
+  $('heroNote').textContent = ok
+    ? '有效贡献毛益率 '+pct(d.cmRate)+' · 保本件数 '+fmt(d.Qbep)+' 件/月'
+    : '单件贡献毛益 ≤ 0，售价无法覆盖采购成本与 FOB 费';
+  $('heroYear').textContent = ok ? wan(d.Rbep*12,1)+' 万' : '—';
+  $('heroH2').textContent = ok ? wan(d.Rbep*6,1)+' 万' : '—';
+
+  const kpis=[
+    ['销售价 / 件', fmt(d.P,3)+' <small style="font-size:12px;font-weight:400">元</small>', '= '+fmt(p.c)+' ÷ (1 − '+pct(p.m,0)+')'],
+    ['账面毛利率', pct(p.m), '仅扣不含税采购成本'],
+    ['FOB 费率', pct(d.fobRate), fmt(p.f)+' 元/件 ÷ 售价'],
+    ['有效贡献毛益率', pct(d.cmRate), '= '+pct(p.m,0)+' − '+pct(d.fobRate)],
+    ['单件贡献毛益', fmt(d.cm,3)+' <small style="font-size:12px;font-weight:400">元</small>', '售价 − 采购 − FOB 费'],
+    ['保本件数', fmt(d.Qbep)+' <small style="font-size:12px;font-weight:400">件</small>', '固定成本 ÷ 单件贡献毛益'],
+    ['目标利润所需出口额', wan(d.Rtarget)+' <small style="font-size:12px;font-weight:400">万</small>', '目标 '+wan(p.tp,0)+' 万/月'],
+    ['税负率上限', pct(d.cmRate*p.rate), '出口额趋无穷时的极限 · 税率 '+pct(p.rate,0)]
+  ];
+  $('kpis').innerHTML = kpis.map(k=>
+    '<div class="kpi"><div class="lb">'+k[0]+'</div><div class="vl">'+k[1]+'</div><div class="hint">'+k[2]+'</div></div>').join('');
+
+  $('chain').innerHTML = [
+    '售价 '+fmt(d.P,2), '−', '采购 '+fmt(p.c), '−', 'FOB '+fmt(p.f), '=',
+    '<span class="tag '+(ok?'tag-p':'tag-n')+'">贡献毛益 '+fmt(d.cm,2)+' 元/件</span>',
+    '×', '<span class="tag tag-w">件数 '+fmt(d.Qbep)+'</span>', '=', '覆盖固定成本 '+fmt(p.fc)
+  ].map(x=>['−','=','×'].includes(x)?'<span class="op">'+x+'</span>':'<span class="step">'+x+'</span>').join('');
+
+  const rows=[
+    ['营业收入（出口额）', d.P, d.Rbep, '售价 × 件数'],
+    ['减：不含税采购成本', p.c, d.Qbep*p.c, '成本按不含税价结转'],
+    ['账面毛利', d.gross, d.Qbep*d.gross, '= 出口额 × '+pct(p.m,0)],
+    ['减：FOB 本地费', p.f, d.Qbep*p.f, '未纳入定价，额外支出'],
+    ['贡献毛益', d.cm, d.Qbep*d.cm, '可用于覆盖固定成本'],
+    ['减：固定成本', null, p.fc, '房租 / 人力 / 办公等'],
+    ['经营利润', null, d.Qbep*d.cm-p.fc, '保本点应为 0']
+  ];
+  $('plBody').innerHTML = rows.map(r=>{
+    const isKey = ['账面毛利','贡献毛益','经营利润'].includes(r[0]);
+    return '<tr'+(isKey?' class="hl"':'')+'><td>'+r[0]+'</td><td>'+(r[1]===null?'—':fmt(r[1],2))+'</td><td>'+fmt(r[2],2)+'</td><td style="text-align:left;color:var(--ink2);font-size:12px">'+r[3]+'</td></tr>';
+  }).join('');
+
+  $('formulaBox').textContent =
+    '售价 P = 采购成本 c ÷ (1 − m) = '+fmt(p.c)+' ÷ '+(1-p.m).toFixed(2)+' = '+fmt(d.P,4)+' 元/件\n'+
+    '有效贡献毛益率 = m − f/P = '+pct(p.m,0)+' − '+pct(d.fobRate,4)+' = '+pct(d.cmRate,4)+'\n'+
+    '保本出口额 = 固定成本 ÷ 有效贡献毛益率 = '+fmt(p.fc)+' ÷ '+d.cmRate.toFixed(6)+' = '+fmt(d.Rbep,2)+' 元\n'+
+    '目标利润出口额 = (固定成本 + 目标利润) ÷ '+d.cmRate.toFixed(6)+' = '+fmt(d.Rtarget,2)+' 元';
+
+  const targets=[0,200000,500000,1000000,2000000];
+  $('gradient').innerHTML = targets.map(t=>{
+    const R = ok ? (p.fc+t)/d.cmRate : Infinity, Q = ok ? R/d.P : Infinity;
+    const tr = taxRate(R,p,d);
+    return '<tr'+(t===0?' class="hl"':'')+'><td>'+(t===0?'保本（0）':wan(t,0)+' 万')+'</td><td>'+wan(R)+' 万</td><td>'+fmt(Q)+' 件</td><td>'+(t===0?'—':'+'+wan(R-d.Rbep)+' 万')+'</td><td class="'+(tr>=0.04?'pos':'neg')+'">'+pct(tr)+'</td></tr>';
+  }).join('');
+
+  const ms=[0.10,0.14,0.16,0.20,0.25];
+  $('compare').innerHTML = ms.map(mm=>{
+    const P=p.c/(1-mm), cm=P-p.c-p.f, cr=cm/P, R=cr>0?p.fc/cr:Infinity;
+    const delta = isFinite(R)&&ok ? (R/d.Rbep-1) : NaN;
+    return '<tr'+(Math.abs(mm-0.14)<0.001?' class="hl"':'')+'><td>'+pct(mm,0)+(Math.abs(mm-0.14)<0.001?' <span class="tag tag-w">当前</span>':'')+'</td><td>'+fmt(P,2)+'</td><td>'+fmt(P-p.c,2)+'</td><td>'+pct(p.f/P)+'</td><td>'+pct(cr)+'</td><td>'+(isFinite(R)?wan(R)+' 万':'不可保本')+'</td><td>'+(isFinite(delta)?(delta>0?'+':'')+pct(delta,1):'—')+'</td></tr>';
+  }).join('');
+  const m20R = (()=>{const P=p.c/0.8,cr=(P-p.c-p.f)/P;return cr>0?p.fc/cr:Infinity})();
+  $('compareNote').innerHTML = '<b>关键结论：</b>定价毛利率从 20% 降至 14%，保本出口额由 '+wan(m20R)+' 万/月升至 '+wan(d.Rbep)+' 万/月，增幅 '+pct(d.Rbep/m20R-1,1)+'。原因是固定的 7 元/件 FOB 费在更低售价中占比上升，且每件可留存贡献毛益从 20.50 元降至 '+fmt(d.cm,2)+' 元。';
+
+  const R0=p.q0*d.P, cm0=p.q0*d.cm, pl=cm0-p.fc;
+  const cur=[
+    ['当前月出口额', wan(R0)+' 万', p.q0+' 件 × '+fmt(d.P,3)+' 元'],
+    ['当前贡献毛益', wan(cm0)+' 万', p.q0+' 件 × '+fmt(d.cm,3)+' 元'],
+    ['当前经营损益', (pl>=0?'+':'')+wan(pl)+' 万', pl>=0?'盈利':'亏损'],
+    ['距保本缺口', wan(Math.max(0,d.Rbep-R0))+' 万/月', '需增长 '+pct(d.Rbep/R0-1,1)],
+    ['距保本件数缺口', fmt(Math.max(0,d.Qbep-p.q0))+' 件/月', '需增至 '+fmt(d.Qbep)+' 件/月']
+  ];
+  $('current').innerHTML = cur.map(r=>'<tr><td>'+r[0]+'</td><td class="'+(r[0].includes('损益')?(pl>=0?'pos':'neg'):'')+'">'+r[1]+'</td><td style="text-align:left;color:var(--ink2);font-size:12px">'+r[2]+'</td></tr>').join('');
+
+  const perName = {12:'年度应纳税所得额',6:'H2 半年累计',1:'单月'}[p.period]||'周期';
+  const capMonthly = p.pl/p.period;
+  const Rmax = ok ? (p.fc+capMonthly)/d.cmRate : Infinity;
+  const den = d.cmRate*p.rate - p.tt;
+  let taxLo=0, taxHi=Infinity, taxSolvable=true;
+  if(p.dir==='min'){
+    if(den>0) taxLo=p.fc*p.rate/den; else { taxLo=Infinity; taxSolvable=false; }
+  } else if(den>0){ taxHi=p.fc*p.rate/den; }
+  const lo=Math.max(d.Rbep,taxLo), hi=Math.min(Rmax,taxHi);
+  const feasible=isFinite(lo)&&isFinite(hi)&&hi>=lo;
+  const curR=p.q0*d.P;
+
+  const bannerMsg = !taxSolvable
+    ? '<b>约束冲突：4% 指标作为下限在数学上不可达。</b> 有效贡献毛益率 '+pct(d.cmRate)+' × 税率 '+pct(p.rate,0)+' = '+pct(d.cmRate*p.rate)+'，这是税负率随出口额增长的理论上限，低于 '+pct(p.tt,0)+'；而利润上限 '+wan(p.pl,0)+' 万会进一步压低税负率。若 4% 实为「不超过」的上限指标，在上方切换方向即可查看可行区间。'
+    : (!feasible
+      ? '<b>无可行区间。</b> 保本／税负率下限要求 R ≥ '+wan(lo)+' 万/月，利润上限要求 R ≤ '+wan(hi)+' 万/月，两者不相容。'
+      : '<b>存在可行区间：'+wan(lo)+' ~ '+wan(hi)+' 万/月</b>（宽度 '+wan(hi-lo)+' 万）。当前业务量对应 '+wan(curR)+' 万/月，'+(curR>=lo&&curR<=hi?'位于区间内':'位于区间外')+'。');
+  $('cBanner').innerHTML='<div style="padding:12px 16px;border-radius:8px;background:'+(feasible?'var(--pos-bg)':'var(--neg-bg)')+';color:'+(feasible?'var(--pos)':'var(--neg)')+';font-size:13px;line-height:1.8">'+bannerMsg+'</div>';
+
+  const crows=[
+    ['① 保本（经营利润 ≥ 0）','R ≥ '+wan(d.Rbep)+' 万/月',wan(d.Rbep)+' 万','下限'],
+    ['② 利润 ≤ '+wan(p.pl,0)+' 万（'+perName+'）','月利润 ≤ '+wan(capMonthly)+' 万',wan(Rmax)+' 万','上限'],
+    ['③ 税负率 '+(p.dir==='min'?'≥':'≤')+' '+pct(p.tt,0),
+      p.dir==='min' ? (taxSolvable?'R ≥ '+wan(taxLo)+' 万/月':'无解（理论上限仅 '+pct(d.cmRate*p.rate)+'）') : (isFinite(taxHi)?'R ≤ '+wan(taxHi)+' 万/月':'恒成立'),
+      p.dir==='min' ? (taxSolvable?wan(taxLo)+' 万':'—') : (isFinite(taxHi)?wan(taxHi)+' 万':'—'),
+      p.dir==='min'?'下限':'上限']
+  ];
+  $('cRows').innerHTML=crows.map(r=>'<tr><td>'+r[0]+'</td><td style="text-align:right">'+r[1]+'</td><td>'+r[2]+'</td><td><span class="tag '+(r[3]==='下限'?'tag-w':'tag-p')+'">'+r[3]+'</span></td></tr>').join('');
+
+  const scaleMax=Math.max(d.Rbep,isFinite(Rmax)?Rmax:0,isFinite(taxLo)?taxLo:0,curR)*1.25||1;
+  const lp=Math.max(0,Math.min(100,lo/scaleMax*100)), hp=Math.max(0,Math.min(100,hi/scaleMax*100)), cp=Math.max(0,Math.min(100,curR/scaleMax*100));
+  $('rangeBar').innerHTML='<div style="background:var(--bg);border-radius:8px;padding:14px 16px">'+
+    '<div style="font-size:12px;color:var(--ink2);margin-bottom:10px">出口额刻度（万元 / 月）· 绿色为可行区间，红线为当前业务量</div>'+
+    '<div style="position:relative;height:30px;background:#e9ecf0;border-radius:6px">'+
+      (feasible?'<div style="position:absolute;left:'+lp+'%;width:'+Math.max(0,hp-lp)+'%;height:100%;background:var(--pos-bg);border-left:2px solid var(--pos);border-right:2px solid var(--pos)"></div>':'')+
+      '<div style="position:absolute;left:'+cp+'%;top:-4px;width:2px;height:38px;background:var(--neg)"></div>'+
+    '</div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-top:6px"><span>0</span><span>'+wan(scaleMax/2,0)+'</span><span>'+wan(scaleMax,0)+'</span></div>'+
+    '<div style="font-size:11px;color:var(--neg);margin-top:8px">当前业务量 '+wan(curR)+' 万/月</div></div>';
+
+  const cliffRows=[
+    ['临界值 − 1 元','5% 小微优惠',p.pl*0.05,p.pl*0.95],
+    ['恰好 '+wan(p.pl,0)+' 万','5% 小微优惠',p.pl*0.05,p.pl*0.95],
+    ['超出 1 元（丧失优惠）','25% 全额计征',p.pl*0.25,p.pl*0.75]
+  ];
+  $('cliff').innerHTML=cliffRows.map((r,i)=>'<tr'+(i===2?' class="hl"':'')+'><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+wan(r[2],1)+' 万</td><td class="'+(i===2?'neg':'pos')+'">'+wan(r[3],1)+' 万</td></tr>').join('');
+  $('cliffNote').innerHTML='<b>断崖效应：</b>应纳税所得额超过 '+wan(p.pl,0)+' 万后整户丧失优惠、全额按 25% 计征，税后净利从 '+wan(p.pl*0.95,0)+' 万骤降至 '+wan(p.pl*0.75,0)+' 万，减少 '+wan(p.pl*0.20,0)+' 万。<b>政策依据：</b>2023年1月1日至2027年12月31日，小型微利企业年应纳税所得额 ≤300 万部分减按 25% 计入应纳税所得额、按 20% 税率缴纳，实际税负 5%（国家税务总局安徽省税务局、广东省税务局等公开口径）。<br><b>还需同时满足：</b>非限制禁止行业、从业人数 ≤300 人、资产总额 ≤5000 万元（按全年季度平均值）。若年出口额达 '+wan(Rmax*12,0)+' 万，需核查资产总额是否超限。';
+
+  const E=p.fx, E1=p.fx1;
+  const F=(E>0&&isFinite(d.P)) ? d.P/E : 0;
+  const HCtax=F>0?p.c/F:Infinity, HCop=F>0?(p.c+p.f)/F:Infinity;
+  const HCfull=F>0?(p.c+p.f+p.fc/(p.q0||1))/F:Infinity;
+  const HCbep=(F>0&&ok)?(p.c+p.f+p.fc/d.Qbep)/F:Infinity;
+  const usdProfit=E1-HCop, fxOk=HCtax>=p.hcl&&HCtax<=p.hch;
+  $('fxBanner').innerHTML='<div style="padding:12px 16px;border-radius:8px;background:'+(fxOk?'var(--pos-bg)':'var(--neg-bg)')+';color:'+(fxOk?'var(--pos)':'var(--neg)')+';font-size:13px;line-height:1.8">'+
+    '<b>退税申报口径换汇成本 '+fmt(HCtax,4)+' 元/美元</b>，'+(fxOk?'落在 '+p.hcl+'~'+p.hch+' 参考区间内':'超出 '+p.hcl+'~'+p.hch+' 参考区间')+'，且'+(HCtax<E?'低于':'高于')+'基准汇率 '+fmt(E,4)+'。<br>'+
+    '经营口径 '+fmt(HCop,4)+' 元/美元；按情景汇率 '+fmt(E1,4)+' 结汇，每美元'+(usdProfit>=0?'盈利':'亏损')+' <b>'+fmt(Math.abs(usdProfit),4)+' 元</b>（'+pct(Math.abs(usdProfit)/E1)+'）。<br>'+
+    '完全成本口径（现有业务量，含固定成本分摊）'+fmt(HCfull,4)+' 元/美元，'+(HCfull>E1+1e-4?'<b>已高于结汇汇率，成本倒挂</b>，与月度亏损相互印证':(Math.abs(HCfull-E1)<=1e-4?'<b>恰等于结汇汇率，处于保本</b>':'低于结汇汇率'))+'。</div>';
+  const fxK=[
+    ['FOB 美元价 / 件',fmt(F,4)+' <small style="font-size:12px;font-weight:400">USD</small>','= 售价 '+fmt(d.P,2)+' ÷ '+fmt(E,4)],
+    ['每美元盈亏',(usdProfit>=0?'+':'−')+fmt(Math.abs(usdProfit),4)+' <small style="font-size:12px;font-weight:400">元</small>','结汇汇率 − 经营口径换汇成本'],
+    ['贡献毛益临界汇率',fmt(HCop,4),'汇率跌至此处则贡献毛益归零'],
+    ['完全成本临界汇率',fmt(HCfull,4),'现有量下需贬值至此才保本']
+  ];
+  $('fxKpis').innerHTML=fxK.map(k=>'<div class="kpi"><div class="lb">'+k[0]+'</div><div class="vl">'+k[1]+'</div><div class="hint">'+k[2]+'</div></div>').join('');
+  const fxr=[
+    ['① 退税申报口径','不含税采购金额 '+fmt(p.c)+'（征退一致 13%/13%）',HCtax],
+    ['② 经营口径','采购 '+fmt(p.c)+' + FOB费 '+fmt(p.f)+' = '+fmt(p.c+p.f),HCop],
+    ['③ 完全成本 @ 现有量','② + 固定成本分摊 '+fmt(p.fc/(p.q0||1),2),HCfull],
+    ['④ 完全成本 @ 保本量','② + 分摊 '+fmt(ok?p.fc/d.Qbep:0,2)+' = 售价',HCbep]
+  ];
+  $('fxRows').innerHTML=fxr.map((r,i)=>{
+    const v=r[2], inRange=v>=p.hcl&&v<=p.hch, eq=Math.abs(v-E)<=1e-4;
+    const vsCell=eq?'<span style="color:var(--ink2)">等于 '+fmt(E,4)+'</span>':'<span class="'+(v<E?'pos':'neg')+'">'+(v<E?'低于 ':'高于 ')+fmt(E,4)+'</span>';
+    const rangeCell=i===0?'<span class="tag '+(inRange?'tag-p':'tag-w')+'">'+(inRange?'区间内':'区间外')+'</span>':'<span style="color:var(--ink3)">—</span>';
+    return '<tr'+(i===0?' class="hl"':'')+'><td>'+r[0]+'</td><td style="text-align:right;font-size:12px;color:var(--ink2)">'+r[1]+'</td><td>'+fmt(v,4)+'</td><td>'+vsCell+'</td><td>'+rangeCell+'</td></tr>';
+  }).join('');
+  const sensE=[E-0.30,E-0.20,E-0.10,E,E+0.20,E+0.40,E+0.80,HCfull];
+  const uniq=[...new Set(sensE.filter(x=>isFinite(x)&&x>0).map(x=>Math.round(x*10000)/10000))].sort((a,b)=>a-b);
+  $('fxSens').innerHTML=uniq.map(x=>{
+    const rev=F*x, cm1=rev-p.c-p.f, cr1=rev>0?cm1/rev:0;
+    const profit=p.q0*cm1-p.fc, Rb=cr1>0?p.fc/cr1:Infinity;
+    const isCur=Math.abs(x-E1)<0.00005||Math.abs(x-E)<0.00005;
+    return '<tr'+(isCur?' class="hl"':'')+'><td>'+fmt(x,4)+(Math.abs(x-E)<0.00005?' <span class="tag tag-w">基准</span>':'')+(Math.abs(x-HCfull)<0.00005?' <span class="tag tag-n">保本汇率</span>':'')+'</td><td>'+fmt(rev,2)+'</td><td class="'+(cr1>0?'pos':'neg')+'">'+pct(cr1)+'</td><td class="'+(profit>=0?'pos':'neg')+'">'+(profit>=0?'+':'')+wan(profit)+' 万</td><td>'+(isFinite(Rb)?wan(Rb)+' 万':'—')+'</td></tr>';
+  }).join('');
+  $('fxNote').innerHTML='<b>三个恒等式：</b>退税申报口径换汇成本 = 汇率 × (1 − 定价毛利率) = '+fmt(E,4)+' × '+fmt(1-p.m,2)+' = '+fmt(E*(1-p.m),4)+'；经营口径 = 汇率 × (1 − 有效贡献毛益率) = '+fmt(HCop,4)+'；保本量下完全成本换汇成本恰等于汇率。<br>'+
+    '<b>合规口径：</b>分子为增值税专用发票不含税计税金额 × (1 + 征税率 − 退税率)，分母必须是 FOB 美元价（CIF/CFR 需先扣运保费还原）；征退一致时系数为 1。汇率须在「出口当日」或「出口当月 1 日」中间价中选定，选定后 12 个月内不得变更。<br>'+
+    '<b>口径边界：</b>仅①为退税审核系统采用的申报口径，②③④为内部管理口径，不参与 '+p.hcl+'~'+p.hch+' 区间判定；但③④与汇率比较可判断含固定成本后的倒挂与否。<br>'+
+    '<b>区间性质：</b>'+p.hcl+'~'+p.hch+' 元/美元为行业参考区间，非法律或总局规范性文件统一规定的法定红线，部分地区对服装、家居等执行约 7.5 的更严上限。当前汇率 '+fmt(E,4)+' 下，因 HC = E×(1−m) 且 m ≥ 0，申报口径最多为 '+fmt(E,4)+'，不会触及 '+p.hch+'；定价毛利率高于 '+pct(1-p.hcl/E,2)+' 才可能低于下限 '+p.hcl+'。<br>'+
+    '<b>并行合规项：</b>换汇成本落在区间内不等于退税安全。按国家税务总局公告 2026 年第 5 号，出口货物应在报关出口之日的次年 4 月 30 日前收汇，未收汇且不符合视同收汇情形的，已退税款应缴回或转免税；单证备案须在申报后 15 日内留存、保存 10 年。';
+
+  $('notes').innerHTML =
+    '<b>1. 口径。</b>14% 为账面毛利率（售价 − 不含税采购成本），FOB 本地费 '+fmt(p.f)+' 元/件属于随件数变动的额外支出，定价时未计入，必须从贡献毛益中再扣一次。<br>'+
+    '<b>2. 退税不进利润表。</b>外贸企业成本按不含税价结转，进项税额挂资产负债表，退税收益已体现在成本口径中，不重复计入收入。<br>'+
+    '<b>3. 固定成本口径。</b>70 万/月为不随出口额变动的支出；若其中包含随件数变动的物流或仓储费，应移入变动成本项，保本额会相应下降。<br>'+
+    '<b>4. 税负率约束。</b>有效贡献毛益率 '+pct(d.cmRate)+' × 税率 '+pct(p.rate,0)+' 决定税负率理论上限 '+pct(d.cmRate*p.rate)+'。此前已查证：4% 非法定强制标准，属辅导机构的风险控制建议，且出口退税企业税负率偏低被税务口径认可为正常。若 4% 作为下限，与「利润 ≤300 万」方向对立、不可兼得；若作为上限，则自动满足。<br>'+
+    '<b>5. 利润 300 万的周期口径。</b>小微优惠以「年度应纳税所得额」为准，非半年或单月口径。若此处指 H2 半年累计 300 万，全年合计仍可能突破 300 万而丧失资格，需按全年利润通盘控制。<br>'+
+    '<b>6. 换汇成本。</b>该指标不改变人民币口径的保本额与利润，它是同一经济关系的美元表达：HC = 汇率 × 成本率。其真正作用是引入两个边界——退税审核的合理性筛查，以及美元合同锁价时的汇率风险。若报价随汇率同步调整（人民币定价），汇率风险由客户承担，盈利性不变；若美元价锁定，人民币升值会直接压缩贡献毛益并抬高保本额。<br>'+
+    '<b>7. 适用范围。</b>本模型假设售价、单位采购成本、单位 FOB 费在相关范围内保持恒定，且不考虑客户账期对现金流的影响。若通过关联采购定价将利润转移至香港利景，会同时改变退税基数与转让定价合规性，需单独评估。';
+}
+['c','m','f','fc','tp','q0','pl','period','rate','dir','tt','fx','fx1','hcl','hch'].forEach(id=>{
+  $(id).addEventListener('input',render);
+  $(id).addEventListener('change',render);
+});
+render();
+</script>
+</body>
+</html>
